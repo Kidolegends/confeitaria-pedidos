@@ -1,0 +1,46 @@
+{
+  "name": "confeitaria-pedidos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site de confeitaria com pedidos online, envio pelo WhatsApp e painel de encomendas (React + Node.js + TypeScript)",
+  "author": "João Batista dos Santos Neto",
+  "license": "MIT",
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c magenta,cyan \"npm run dev -w api\" \"npm run dev -w web\"",
+    "setup": "npm run setup -w api",
+    "seed": "npm run seed -w api",
+    "build": "npm run build -w api && npm run build -w web",
+    "start": "npm run start -w api",
+    "test": "npm run test -w api",
+    "lint": "eslint .",
+    "typecheck": "npm run typecheck -w api && npm run typecheck -w web",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "prisma@6.19.3": true,
+    "esbuild@0.28.2": true,
+    "@scarf/scarf": false
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "concurrently": "^9.2.5",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.72.0"
+  }
+}
