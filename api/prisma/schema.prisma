@@ -1,0 +1,107 @@
+// Banco de dados da Doce Encanto Confeitaria.
+// SQLite não tem enum: os campos de "status", "role" etc. são texto e o Zod garante os valores.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Quem acessa o painel administrativo
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+}
+
+// Item do cardápio
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  description String
+  category    String // bolos | tortas | doces | salgados | kits
+  priceCents  Int // preço em centavos (evita erro de arredondamento com float)
+  unit        String      @default("unidade") // ex.: "unidade", "cento", "kg"
+  emoji       String      @default("🧁") // aparece quando o produto ainda não tem foto
+  imageKey    String? // nome do arquivo da foto no armazenamento (disco ou S3/R2)
+  active      Boolean     @default(true) // inativo = some do site, mas continua no histórico
+  featured    Boolean     @default(false) // destaque na página inicial
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+}
+
+// Encomenda feita pelo site
+model Order {
+  id               Int         @id @default(autoincrement()) // número do pedido (#0001)
+  customerName     String
+  customerPhone    String // só dígitos, ex.: 34999998888
+  fulfillment      String // retirada | entrega
+  address          String? // obrigatório quando é entrega
+  scheduledDate    String // "AAAA-MM-DD" no horário da confeitaria
+  scheduledTime    String // "HH:MM"
+  notes            String?
+  deliveryFeeCents Int         @default(0)
+  status           String      @default("novo")
+  totalCents       Int // itens + taxa de entrega, calculado no servidor
+  publicToken      String      @unique @default(cuid()) // link de acompanhamento do cliente
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  items            OrderItem[]
+
+  @@index([status])
+  @@index([scheduledDate])
+}
+
+// Linha do pedido. Guardamos nome e preço do momento da compra:
+// se o produto mudar de preço depois, o pedido antigo não muda.
+model OrderItem {
+  id             String   @id @default(cuid())
+  orderId        Int
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String?
+  product        Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName    String
+  unitPriceCents Int
+  quantity       Int
+  subtotalCents  Int
+}
+
+// Depoimentos exibidos no site (gerenciados pelo painel)
+model Testimonial {
+  id           String   @id @default(cuid())
+  customerName String
+  text         String
+  rating       Int      @default(5) // 1 a 5 estrelas
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+// Configurações da loja: uma única linha (id = 1), editável no painel
+model StoreSettings {
+  id               Int      @id @default(1)
+  storeName        String
+  whatsappNumber   String // só dígitos com DDI: 5534999998888
+  phoneDisplay     String?
+  email            String?
+  instagram        String?
+  address          String
+  city             String
+  mapsUrl          String?
+  openDays         String   @default("2,3,4,5,6") // 0=domingo ... 6=sábado
+  openingTime      String   @default("08:00")
+  closingTime      String   @default("18:00")
+  pickupEnabled    Boolean  @default(true)
+  deliveryEnabled  Boolean  @default(true)
+  deliveryFeeCents Int      @default(0)
+  deliveryArea     String?
+  minDaysAhead     Int      @default(1)
+  aboutText        String?
+  updatedAt        DateTime @updatedAt
+}
