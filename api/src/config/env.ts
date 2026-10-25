@@ -6,6 +6,9 @@ dotenv.config({ quiet: true });
 
 // Mensagens de validação padrão do Zod em português
 z.config(z.locales.pt());
+z.config({
+  customError: (issue) => (issue.input === undefined ? 'Campo obrigatório' : undefined),
+});
 
 const bool = z
   .enum(['true', 'false', '1', '0'])
