@@ -1,0 +1,41 @@
+@import 'tailwindcss';
+
+/* Paleta da confeitaria: rosa (marca), creme (fundo) e chocolate (texto) */
+@theme {
+  --color-brand-50: #fdf2f8;
+  --color-brand-100: #fce7f3;
+  --color-brand-200: #fbcfe8;
+  --color-brand-300: #f9a8d4;
+  --color-brand-400: #f472b6;
+  --color-brand-500: #ec4899;
+  --color-brand-600: #db2777;
+  --color-brand-700: #be185d;
+  --color-brand-800: #9d174d;
+  --color-brand-900: #831843;
+
+  --color-cream-50: #fffaf5;
+  --color-cream-100: #fdf1e4;
+  --color-cream-200: #f8e2c8;
+
+  --color-cocoa-500: #8b5e46;
+  --color-cocoa-700: #5c3a28;
+  --color-cocoa-900: #3b2418;
+
+  --font-display: 'Georgia', 'Cambria', 'Times New Roman', serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@layer components {
+  .input {
+    @apply w-full rounded-lg border border-cocoa-500/25 bg-white px-3 py-2 text-sm text-cocoa-900 shadow-sm outline-none transition placeholder:text-cocoa-500/50 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 disabled:bg-cream-100;
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium text-cocoa-700;
+  }
+  .card {
+    @apply rounded-2xl border border-cocoa-500/10 bg-white shadow-sm;
+  }
+}
