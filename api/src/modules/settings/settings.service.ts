@@ -1,5 +1,6 @@
 import type { StoreSettings } from '@prisma/client';
 import { env } from '../../config/env';
+import { demoInfo } from '../../demo/demo';
 import { prisma } from '../../lib/prisma';
 import { addDays, toLocalDate } from '../../lib/time';
 import type { UpdateSettingsInput } from './settings.schemas';
@@ -40,5 +41,11 @@ export function toSettingsView(settings: StoreSettings) {
 /** Dados públicos usados pelo site. */
 export async function getPublicStore() {
   const settings = await getSettings();
-  return { ...toSettingsView(settings), minDate: minScheduledDate(settings), today: toLocalDate() };
+  return {
+    ...toSettingsView(settings),
+    minDate: minScheduledDate(settings),
+    today: toLocalDate(),
+    // Modo demonstração: o site mostra o aviso e o login de teste (null numa loja real)
+    demo: demoInfo(),
+  };
 }

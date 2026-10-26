@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { env } from '../../config/env';
+import { assertNotDemo } from '../../demo/demo';
 import { currentUser, requireAdmin } from '../../middlewares/auth';
 import { limitPerIp } from '../../middlewares/rate-limit';
 import { changePasswordSchema, loginSchema } from './auth.schemas';
@@ -21,6 +22,7 @@ export function createAuthRoutes(loginLimit = env.RATE_LIMIT_LOGIN) {
   });
 
   routes.patch('/password', requireAdmin, async (req, res) => {
+    assertNotDemo('trocar a senha nem o e-mail do painel');
     const input = changePasswordSchema.parse(req.body);
     await authService.changePassword(currentUser(req).id, input);
     res.status(204).send();

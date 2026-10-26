@@ -175,6 +175,8 @@ export const openApiDocument = {
       get: {
         tags: ['Site (público)'],
         summary: 'Dados da loja: WhatsApp, horários e data mínima de encomenda',
+        description:
+          'O campo `demo` vem preenchido só no modo demonstração (DEMO_MODE=true), com o login de teste do painel.',
         responses: { 200: { description: 'OK' } },
       },
     },
@@ -275,7 +277,11 @@ export const openApiDocument = {
             },
           },
         },
-        responses: { 204: { description: 'Senha alterada' }, 422: error('Senha atual incorreta') },
+        responses: {
+          204: { description: 'Senha alterada' },
+          403: error('Bloqueado no modo demonstração'),
+          422: error('Senha atual incorreta'),
+        },
       },
     },
     '/api/admin/dashboard': {

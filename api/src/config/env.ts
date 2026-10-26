@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import dotenv from 'dotenv';
 import { z } from 'zod';
 
@@ -70,8 +71,22 @@ const envSchema = z
       .regex(/^\d{12,13}$/, 'Use só dígitos com DDI e DDD, ex.: 5534999998888')
       .default('5534900000000'),
     SEED_ALLOW_PRODUCTION: bool.default(false),
+
+    // Modo demonstração (ex.: link de portfólio no Render grátis): a cada start o banco é
+    // recriado com os dados de exemplo, o login de demonstração aparece na tela e a troca de
+    // senha fica bloqueada. NUNCA ligue numa loja de verdade: apaga todos os pedidos.
+    DEMO_MODE: bool.default(false),
+    // De quantas em quantas horas a demonstração volta aos dados originais (0 = só no start)
+    DEMO_RESET_HOURS: z.coerce.number().min(0).max(168).default(6),
   })
   .superRefine((env, ctx) => {
+    if (env.DEMO_MODE && env.STORAGE_DRIVER !== 'local') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['STORAGE_DRIVER'],
+        message: 'DEMO_MODE usa STORAGE_DRIVER=local (as fotos da demonstração são temporárias)',
+      });
+    }
     if (env.NODE_ENV !== 'production') return;
     // Em produção, não aceitamos o segredo de exemplo nem um segredo curto
     if (env.JWT_SECRET.length < 32 || env.JWT_SECRET.startsWith('troque')) {
@@ -100,12 +115,36 @@ const envSchema = z
     }
   });
 
-const parsed = envSchema.safeParse(process.env);
+const isTrue = (value: string | undefined) => value === 'true' || value === '1';
+
+/**
+ * Valida as variáveis de ambiente. Ajustes antes da validação:
+ *  - PUBLIC_URL vazio: usa o endereço que o Render informa (RENDER_EXTERNAL_URL), se houver.
+ *  - Só no modo demonstração: sem JWT_SECRET, gera um aleatório a cada start (os logins da
+ *    demonstração já expiram quando os dados são recriados, então não há o que perder).
+ */
+export function parseEnv(source: NodeJS.ProcessEnv) {
+  const input = { ...source };
+  if (!input.PUBLIC_URL && input.RENDER_EXTERNAL_URL) input.PUBLIC_URL = input.RENDER_EXTERNAL_URL;
+  let generatedJwtSecret = false;
+  if (isTrue(input.DEMO_MODE) && !input.JWT_SECRET) {
+    input.JWT_SECRET = randomBytes(48).toString('base64url');
+    generatedJwtSecret = true;
+  }
+  return { result: envSchema.safeParse(input), generatedJwtSecret };
+}
+
+const { result: parsed, generatedJwtSecret } = parseEnv(process.env);
 if (!parsed.success) {
   console.error('Variáveis de ambiente inválidas:');
   for (const issue of parsed.error.issues)
     console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
   process.exit(1);
+}
+if (generatedJwtSecret) {
+  console.log(
+    'Modo demonstração: JWT_SECRET não informado, gerado um aleatório para esta execução.',
+  );
 }
 
 export const env = parsed.data;
