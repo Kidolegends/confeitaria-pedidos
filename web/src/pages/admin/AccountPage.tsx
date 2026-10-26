@@ -2,10 +2,13 @@ import { useState, type FormEvent } from 'react';
 import { Alert, Button, Field } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
+import { useStore } from '../../lib/store';
 import { PageTitle } from './AdminLayout';
 
 export function AccountPage() {
   const { user } = useAuth();
+  const { store } = useStore();
+  const demo = Boolean(store?.demo);
   const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirm: '' });
   const [message, setMessage] = useState<{ kind: 'error' | 'success'; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -35,6 +38,12 @@ export function AccountPage() {
       <PageTitle title="Minha conta" subtitle={user?.email} />
       <form onSubmit={submit} className="card max-w-md space-y-4 p-6">
         <h2 className="font-display text-lg font-bold">Trocar senha</h2>
+        {demo && (
+          <Alert kind="info">
+            Na demonstração a senha e o e-mail do painel não podem ser alterados, para que todos os
+            visitantes consigam entrar. Na loja de verdade isso funciona normalmente.
+          </Alert>
+        )}
         <Field label="Senha atual">
           <input
             type="password"
@@ -63,7 +72,7 @@ export function AccountPage() {
           />
         </Field>
         {message && <Alert kind={message.kind}>{message.text}</Alert>}
-        <Button type="submit" disabled={saving}>
+        <Button type="submit" disabled={saving || demo}>
           {saving ? 'Salvando...' : 'Salvar nova senha'}
         </Button>
       </form>

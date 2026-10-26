@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../../lib/auth';
+import { useStore } from '../../lib/store';
 
 const LINKS = [
   ['/admin', '📊', 'Dashboard'],
@@ -14,6 +15,7 @@ const LINKS = [
 
 export function AdminLayout() {
   const { user, logout } = useAuth();
+  const { store } = useStore();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const nav = (
@@ -68,6 +70,12 @@ export function AdminLayout() {
             ☰
           </button>
         </header>
+        {store?.demo && (
+          <p className="bg-brand-50 px-4 py-1.5 text-center text-xs text-brand-900">
+            Modo demonstração: fique à vontade para testar. Os dados voltam ao original
+            periodicamente.
+          </p>
+        )}
         <main className="mx-auto max-w-6xl p-4 md:p-8">
           <Outlet />
         </main>

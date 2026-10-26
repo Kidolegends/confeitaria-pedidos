@@ -94,9 +94,17 @@ export interface StoreSettings {
   aboutText: string | null;
 }
 
+/** Preenchido só quando a API roda em modo demonstração (DEMO_MODE=true). */
+export interface DemoInfo {
+  adminEmail: string;
+  adminPassword: string;
+  resetHours: number;
+}
+
 export interface PublicStore extends StoreSettings {
   minDate: string;
   today: string;
+  demo: DemoInfo | null;
 }
 
 export interface Testimonial {

@@ -3,9 +3,12 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Alert, Button, Field } from '../../components/ui';
 import { errorMessage } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
+import { useStore } from '../../lib/store';
 
 export function LoginPage() {
   const { user, login } = useAuth();
+  const { store } = useStore();
+  const demo = store?.demo;
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState('');
@@ -39,6 +42,22 @@ export function LoginPage() {
           <h1 className="mt-3 font-display text-2xl font-bold">Painel da loja</h1>
           <p className="text-sm text-cocoa-500">Entre para ver e gerenciar as encomendas</p>
         </div>
+        {demo && (
+          <Alert kind="info">
+            <strong>Modo demonstração.</strong> Entre com o e-mail <code>{demo.adminEmail}</code> e
+            a senha <code>{demo.adminPassword}</code>.{' '}
+            <button
+              type="button"
+              className="font-semibold underline"
+              onClick={() => {
+                setEmail(demo.adminEmail);
+                setPassword(demo.adminPassword);
+              }}
+            >
+              Preencher
+            </button>
+          </Alert>
+        )}
         <Field label="E-mail">
           <input
             className="input"

@@ -92,9 +92,25 @@ export function SiteFooter() {
   );
 }
 
+/** Faixa discreta no topo quando o site é uma demonstração. */
+export function DemoBanner() {
+  const { store } = useStore();
+  if (!store?.demo) return null;
+  return (
+    <div className="bg-cocoa-900 px-4 py-1.5 text-center text-xs text-cream-100">
+      <strong>Site de demonstração:</strong> os pedidos não são reais e os dados voltam ao original
+      periodicamente.{' '}
+      <Link to="/admin/login" className="underline hover:text-white">
+        Ver o painel da loja
+      </Link>
+    </div>
+  );
+}
+
 export function SitePage({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
+      <DemoBanner />
       <SiteHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter />
