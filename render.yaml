@@ -1,0 +1,27 @@
+# Blueprint do Render: demonstração online GRATUITA da Doce Encanto.
+# No Render: New → Blueprint → escolha este repositório. Não precisa de banco nem de storage
+# externos: a cada start a demonstração recria um SQLite com os dados de exemplo.
+# Para uma loja de verdade NÃO use este arquivo: veja o DEPLOY.md (precisa de banco persistente).
+services:
+  - type: web
+    name: doce-encanto-demo
+    runtime: docker
+    plan: free
+    region: virginia # a região grátis mais próxima do Brasil
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: DEMO_MODE
+        value: 'true'
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: TRUST_PROXY
+        value: '1'
+      # De quantas em quantas horas os dados voltam ao original (além de a cada start)
+      - key: DEMO_RESET_HOURS
+        value: '6'
+      # PUBLIC_URL não é necessário: a API usa o endereço que o Render informa
+      # (RENDER_EXTERNAL_URL). Com domínio próprio, adicione PUBLIC_URL=https://seu-dominio.
