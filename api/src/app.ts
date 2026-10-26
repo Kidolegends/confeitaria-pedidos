@@ -7,7 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env';
 import { openApiDocument } from './docs/openapi';
 import { AppError } from './lib/app-error';
-import { uploadDir } from './lib/storage';
+import { BUNDLED_IMAGE_PREFIX, SEED_IMAGES_DIR, uploadDir } from './lib/storage';
 import { requireAdmin } from './middlewares/auth';
 import { errorHandler } from './middlewares/error-handler';
 import { createAuthRoutes } from './modules/auth/auth.routes';
@@ -89,6 +89,9 @@ export function createApp(options: AppOptions = {}) {
   });
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
   app.use('/api', api);
+
+  // Fotos de exemplo que vêm junto com o código (modo demonstração): /uploads/seed/...
+  app.use(`/uploads/${BUNDLED_IMAGE_PREFIX}`, express.static(SEED_IMAGES_DIR, { maxAge: '1d' }));
 
   // Fotos dos produtos guardadas no disco (STORAGE_DRIVER=local)
   if (env.STORAGE_DRIVER === 'local') {

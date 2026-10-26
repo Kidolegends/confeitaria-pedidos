@@ -17,6 +17,15 @@ export interface FileStorage {
 
 export const uploadDir = resolve(env.UPLOAD_DIR);
 
+/**
+ * Fotos de exemplo que vêm junto com o código (api/prisma/seed-images), usadas no modo
+ * demonstração. Ficam em /uploads/seed/... e nunca são gravadas nem apagadas pelo storage.
+ */
+export const BUNDLED_IMAGE_PREFIX = 'seed/';
+/** Pasta das fotos de exemplo: api/prisma/seed-images/<nome-do-produto>.webp */
+export const SEED_IMAGES_DIR = join(__dirname, '..', '..', 'prisma', 'seed-images');
+export const isBundledImage = (key: string) => key.startsWith(BUNDLED_IMAGE_PREFIX);
+
 class LocalStorage implements FileStorage {
   async save(key: string, data: Buffer) {
     const path = join(uploadDir, key);
@@ -64,8 +73,14 @@ class S3Storage implements FileStorage {
   }
 }
 
-export const storage: FileStorage =
-  env.STORAGE_DRIVER === 's3' ? new S3Storage() : new LocalStorage();
+const driver: FileStorage = env.STORAGE_DRIVER === 's3' ? new S3Storage() : new LocalStorage();
+
+export const storage: FileStorage = {
+  save: (key, data, contentType) => driver.save(key, data, contentType),
+  // Fotos de exemplo embutidas não são apagadas (outras sessões da demonstração usam a mesma)
+  remove: async (key) => (isBundledImage(key) ? undefined : driver.remove(key)),
+  publicUrl: (key) => (isBundledImage(key) ? `/uploads/${key}` : driver.publicUrl(key)),
+};
 
 const SIGNATURES: { type: string; ext: string; test: (b: Buffer) => boolean }[] = [
   { type: 'image/jpeg', ext: 'jpg', test: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
