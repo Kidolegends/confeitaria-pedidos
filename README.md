@@ -10,6 +10,19 @@ produção, dashboard de faturamento e configurações da loja editáveis.
 
 ![Página inicial](docs/screenshots/01-home.png)
 
+## Demonstração online
+
+**Link:** _(em breve)_
+
+Login do painel (`/admin`): **admin@confeitaria.dev** / **admin123** (aparece também na tela de
+login).
+
+É uma demonstração de verdade, rodando no plano grátis do Render: dá para fazer um pedido pelo
+site e depois vê-lo no painel, mudar o status, cadastrar produtos com foto e editar as
+configurações. Os dados **voltam ao original periodicamente** (a cada reinício e a cada 6 horas)
+e a troca de senha do painel fica bloqueada. Se o site estiver "dormindo", o primeiro acesso pode
+levar cerca de 1 minuto.
+
 ## Funcionalidades
 
 ### Site (cliente)
@@ -53,6 +66,8 @@ produção, dashboard de faturamento e configurações da loja editáveis.
   forte em produção.
 - `Dockerfile` pronto e guia de deploy no [DEPLOY.md](DEPLOY.md) (Railway, Render e domínio
   próprio).
+- **Modo demonstração** (`DEMO_MODE=true`) e `render.yaml` para publicar um link de teste grátis
+  no Render, sem banco externo.
 - Documentação da API com Swagger em `/docs`.
 
 ## Tecnologias
@@ -98,6 +113,12 @@ docker run -p 3333:3333 -v confeitaria-data:/data \
 
 O banco SQLite e as fotos ficam no volume `/data`.
 
+Para rodar a **demonstração** (dados de exemplo recriados a cada start, sem volume):
+
+```bash
+docker run -p 3333:3333 -e DEMO_MODE=true confeitaria
+```
+
 ## Scripts
 
 | Comando                        | O que faz                                              |
@@ -129,6 +150,8 @@ Todas estão comentadas em [`api/.env.example`](api/.env.example). As principais
 | `TRUST_PROXY`                    | `1` atrás de proxy (Render, Railway) para o limite por IP funcionar |
 | `CORS_ORIGIN`                    | Outros domínios que podem chamar a API (vazio = só o próprio site)  |
 | `NOTIFY_PROVIDER`                | `none`, `log` ou `whatsapp_cloud` (aviso automático para a dona)    |
+| `DEMO_MODE`                      | `true` só no link de demonstração: recria os dados a cada start     |
+| `DEMO_RESET_HOURS`               | Na demonstração, de quantas em quantas horas os dados voltam (6)    |
 
 ## Testes
 
@@ -136,7 +159,7 @@ Todas estão comentadas em [`api/.env.example`](api/.env.example). As principais
 npm test
 ```
 
-São **50 testes de integração** (Vitest + Supertest) que sobem a API de verdade num banco de
+São **57 testes de integração** (Vitest + Supertest) que sobem a API de verdade num banco de
 teste, e passam tanto no SQLite quanto no PostgreSQL. Eles cobrem:
 
 - login, token inválido, troca de senha e limite de tentativas;
@@ -146,7 +169,10 @@ teste, e passam tanto no SQLite quanto no PostgreSQL. Eles cobrem:
   acompanhamento sem dados sensíveis, limite de pedidos por IP;
 - filtros do painel, mudança de status (pedido entregue/cancelado não muda mais);
 - dashboard (contagens e faturamento), depoimentos, configurações, cabeçalhos de segurança e CORS;
-- mensagem do WhatsApp e integração com a Cloud API (com `fetch` simulado).
+- mensagem do WhatsApp e integração com a Cloud API (com `fetch` simulado);
+- modo demonstração: troca de senha bloqueada, dados de exemplo recriados, fotos de exemplo
+  servidas do código e validação das variáveis de ambiente (produção continua exigindo
+  `JWT_SECRET` forte).
 
 ## Telas
 

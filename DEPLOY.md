@@ -7,10 +7,14 @@ qualquer hospedagem você só precisa de:
 2. **Um banco**: SQLite num disco persistente **ou** PostgreSQL.
 3. **Um lugar para as fotos**: o mesmo disco persistente **ou** um storage S3 (Cloudflare R2).
 
-| Opção                                      | Banco             | Fotos     | Custo aproximado          |
-| ------------------------------------------ | ----------------- | --------- | ------------------------- |
-| **A. Railway** (recomendada, mais simples) | SQLite no volume  | No volume | Plano Hobby (≈ US$ 5/mês) |
-| **B. Render + Neon + Cloudflare R2**       | PostgreSQL (Neon) | R2        | Dá para começar grátis    |
+| Opção                                      | Banco             | Fotos      | Custo aproximado          |
+| ------------------------------------------ | ----------------- | ---------- | ------------------------- |
+| **A. Railway** (recomendada, mais simples) | SQLite no volume  | No volume  | Plano Hobby (≈ US$ 5/mês) |
+| **B. Render + Neon + Cloudflare R2**       | PostgreSQL (Neon) | R2         | Dá para começar grátis    |
+| **C. Demonstração no Render (portfólio)**  | SQLite temporário | Temporário | Grátis                    |
+
+> A opção C é só para mostrar o sistema funcionando (link de portfólio/proposta). Os dados são
+> apagados a cada reinício. **Não use para uma loja real.**
 
 > Antes de tudo: suba o código para um repositório **privado** no GitHub (as duas plataformas
 > fazem o deploy a partir dele e refazem sozinhas a cada `git push`).
@@ -115,6 +119,52 @@ cada deploy. Por isso o banco vai para o Neon e as fotos para o R2.
 > No plano grátis o Render desliga o serviço depois de ~15 minutos sem acesso e o primeiro
 > acesso seguinte demora perto de 1 minuto. Para uma loja recebendo pedidos de verdade, use o
 > plano pago mais barato.
+
+---
+
+## Opção C: demonstração grátis no Render (link de portfólio)
+
+Um link público para clientes testarem o sistema, **sem custo e sem cadastrar banco nem storage**.
+Com `DEMO_MODE=true` a API, a cada start:
+
+- aplica as migrations num SQLite novo dentro do container e recria os **dados de exemplo**
+  (produtos com fotos, depoimentos, pedidos espalhados pela semana atual e configurações da loja
+  com um WhatsApp fictício);
+- cria o login **admin@confeitaria.dev / admin123**, que aparece num aviso na tela de login;
+- mostra uma faixa discreta no site avisando que é uma demonstração;
+- serve as fotos de exemplo direto da imagem (`api/prisma/seed-images`). Fotos enviadas pelos
+  visitantes funcionam normalmente, mas somem quando os dados são recriados;
+- **bloqueia a troca de senha** do painel, para nenhum visitante trancar os outros do lado de
+  fora;
+- gera um `JWT_SECRET` aleatório se nenhum for informado;
+- recria os dados também a cada `DEMO_RESET_HOURS` horas (padrão 6; `0` desliga).
+
+O plano grátis do Render não tem disco persistente e "dorme" depois de ~15 minutos sem acesso.
+Na demonstração isso é uma vantagem: cada vez que acorda, começa limpa. O primeiro acesso depois
+de dormir leva cerca de 1 minuto.
+
+### Passo a passo (Blueprint)
+
+1. O repositório precisa estar no GitHub (pode ser público).
+2. Em <https://render.com>, entre com o GitHub e vá em **New → Blueprint**.
+3. Escolha o repositório `confeitaria-pedidos`. O Render lê o [`render.yaml`](render.yaml) da raiz,
+   que já define tudo: serviço web **Free**, **Docker**, região **Virginia**, health check em
+   `/api/health` e as variáveis `DEMO_MODE=true`, `NODE_ENV=production`, `TRUST_PROXY=1`,
+   `DEMO_RESET_HOURS=6` e `JWT_SECRET` (gerado pelo Render).
+4. Clique em **Apply** / **Deploy Blueprint**. O primeiro build leva alguns minutos. No log deve
+   aparecer `Modo demonstração: dados recriados` e `Servidor rodando`.
+5. Abra o endereço `https://<nome-do-servico>.onrender.com`, faça um pedido e entre em `/admin`.
+6. Coloque o link na seção **Demonstração online** do README.
+
+Não é preciso configurar `PORT` (o Render informa e a API usa) nem `PUBLIC_URL` (a API usa o
+endereço `RENDER_EXTERNAL_URL` que o Render fornece). Com domínio próprio, adicione
+`PUBLIC_URL=https://seu-dominio`.
+
+**Sem Blueprint** (New → Web Service): escolha o repositório, **Language: Docker**, plano
+**Free**, **Health check path** `/api/health` e as variáveis `DEMO_MODE=true`,
+`NODE_ENV=production` e `TRUST_PROXY=1` (`JWT_SECRET` é opcional na demonstração).
+
+Cada `git push` na `main` refaz o deploy sozinho.
 
 ---
 
