@@ -12,7 +12,7 @@ produção, dashboard de faturamento e configurações da loja editáveis.
 
 ## Demonstração online
 
-**Link:** _(em breve)_
+**Link:** [doce-encanto-demo.onrender.com](https://doce-encanto-demo.onrender.com)
 
 Login do painel (`/admin`): **admin@confeitaria.dev** / **admin123** (aparece também na tela de
 login).
