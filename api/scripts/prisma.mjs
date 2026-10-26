@@ -6,6 +6,7 @@
 //
 // Uso: node scripts/prisma.mjs <comando do prisma>   ex.: node scripts/prisma.mjs migrate deploy
 import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { readFileSync, writeFileSync } from 'node:fs';
 import 'dotenv/config';
 
@@ -28,4 +29,6 @@ if (args[0] === 'sync-postgres') {
 
 const schema = provider === 'postgresql' ? POSTGRES_SCHEMA : SQLITE_SCHEMA;
 console.log(`[prisma] banco: ${provider} (schema ${schema})`);
-execFileSync('npx', ['prisma', ...args, '--schema', schema], { stdio: 'inherit' });
+// Chama o CLI instalado direto (sem npx): o start fica bem mais rápido em servidores pequenos
+const prismaCli = createRequire(import.meta.url).resolve('prisma/build/index.js');
+execFileSync(process.execPath, [prismaCli, ...args, '--schema', schema], { stdio: 'inherit' });
